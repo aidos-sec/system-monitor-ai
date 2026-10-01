@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>System Monitor AI</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: system-ui; background: #0d1117; color: #e6edf3; margin: 0; padding: 20px; }
+  h1 { font-size: 20px; }
+  .cards { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px 18px; min-width: 130px; }
+  .card .label { font-size: 12px; color: #8b949e; }
+  .card .value { font-size: 26px; font-weight: 700; }
+  .alert { background: #3d1d1d; border: 1px solid #f85149; padding: 10px 16px; border-radius: 8px; margin-bottom: 12px; display: none; }
+  canvas { background: #161b22; border: 1px solid #30363d; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h1>🖥️ Real-time System Monitoring with AI Predictions</h1>
+
+<div class="alert" id="alert">⚠️ Прогноз: CPU превысит порог в ближайшие минуты!</div>
+
+<div class="cards">
+  <div class="card"><div class="label">CPU</div><div class="value" id="cpu">—</div></div>
+  <div class="card"><div class="label">RAM</div><div class="value" id="mem">—</div></div>
+  <div class="card"><div class="label">Disk</div><div class="value" id="disk">—</div></div>
+  <div class="card"><div class="label">Прогноз CPU (5 мин)</div><div class="value" id="pred">—</div></div>
+  <div class="card"><div class="label">Тренд</div><div class="value" id="trend">—</div></div>
+</div>
+
+<canvas id="chart" height="100"></canvas>
+
+<script>
+const MAX_POINTS = 120;
+const labels = [], cpuData = [], memData = [];
+const ctx = document.getElementById("chart").getContext("2d");
+
+const chart = new Chart(ctx, {
+  type: "line",
+  data: { labels, datasets: [
+    { label: "CPU %", data: cpuData, borderColor: "#58a6ff", tension: 0.3, pointRadius: 0 },
+    { label: "RAM %", data: memData, borderColor: "#3fb950", tension: 0.3, pointRadius: 0 },
+  ]},
+  options: {
+    animation: false,
+    scales: { y: { min: 0, max: 100 } },
+    plugins: { legend: { labels: { color: "#e6edf3" } } },
+  }
+});
+
+const ws = new WebSocket(`ws://${location.host}/ws/metrics`);
+ws.onmessage = (e) => {
+  const m = JSON.parse(e.data);
+  const t = new Date(m.timestamp * 1000).toLocaleTimeString();
+
+  document.getElementById("cpu").textContent = m.cpu.toFixed(1) + "%";
+  document.getElementById("mem").textContent = m.mem.toFixed(1) + "%";
+  document.getElementById("disk").textContent = m.disk.toFixed(1) + "%";
+
+  labels.push(t); cpuData.push(m.cpu); memData.push(m.mem);
+  if (labels.length > MAX_POINTS) { labels.shift(); cpuData.shift(); memData.shift(); }
+  chart.update();
+
+  if (m.prediction && m.prediction.ready) {
+    document.getElementById("pred").textContent = m.prediction.predicted_cpu + "%";
+    document.getElementById("trend").textContent =
+      {up: "📈 вверх", down: "📉 вниз", stable: "➡️ стабильно"}[m.prediction.trend];
+    document.getElementById("alert").style.display = m.prediction.alert ? "block" : "none";
+  }
+};
+</script>
+</body>
+</html>
