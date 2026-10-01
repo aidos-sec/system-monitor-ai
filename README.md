@@ -22,7 +22,7 @@ forecasting to alert when CPU is expected to cross a critical threshold within 5
 
 | Idle (no false alerts) | Under load (alert triggered) |
 |---|---|
-| *(screenshot)* | *(screenshot)* |
+| ![Idle](screenshot-idle.png) | ![Alert](screenshot-alert.png) |
 
 ## 🚀 Quick Start
 
