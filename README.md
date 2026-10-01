@@ -18,7 +18,7 @@ forecasting to alert when CPU is expected to cross a critical threshold within 5
 
 ## 🎬 Demo
 
-*(gif will be here)*
+![Demo](demo.gif)
 
 | Idle (no false alerts) | Under load (alert triggered) |
 |---|---|
