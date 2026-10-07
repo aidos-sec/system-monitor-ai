@@ -1,32 +1,138 @@
-# 🖥️ Real-time System Monitoring with AI Predictions
+# 🖥️ Real-Time System Monitoring with AI Predictions
 
-Real-time system monitoring dashboard that predicts CPU overload **before it happens**.
-Collects system metrics every second, streams them via WebSocket, and uses time-series
-forecasting to alert when CPU is expected to cross a critical threshold within 5 minutes.
+A lightweight system-monitoring dashboard that collects CPU, memory, disk, and network metrics in real time, streams them over WebSocket, and forecasts short-term CPU load using a smoothed linear trend.
 
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+> Portfolio project focused on monitoring, telemetry, alerting logic, and backend development. It is not a production monitoring platform or a security detection system.
 
 ## ✨ Features
 
-- 📊 **Live dashboard** — CPU, RAM and disk usage streamed every second via WebSocket
-- 🤖 **AI prediction** — linear regression on a smoothed time series forecasts CPU load 5 minutes ahead
-- 🔔 **Smart alerts** — fires only under sustained real load (moving-average smoothing eliminates false positives)
-- 📈 **Trend detection** — up / down / stable with estimated time-to-threshold
-- ⚡ **Zero config** — runs locally with one command, no external services needed
+- Live CPU, RAM, disk, and network telemetry
+- WebSocket streaming from a FastAPI backend
+- Moving-average smoothing to reduce noisy CPU spikes
+- Linear-regression forecasting for a 5-minute horizon
+- Trend classification: up / down / stable
+- Alert logic when sustained CPU load is projected to cross a threshold
+- Browser dashboard with no external service dependency
 
 ## 🎬 Demo
 
 ![Demo](demo.gif)
 
-| Idle (no false alerts) | Under load (alert triggered) |
+| Idle | Under load |
 |---|---|
 | ![Idle](screenshot-idle.png) | ![Alert](screenshot-alert.png) |
+
+## 🧱 Architecture
+
+```text
+psutil metrics
+    ↓
+FastAPI backend
+    ↓
+WebSocket stream
+    ↓
+Browser dashboard
+
+CPU history
+    ↓
+Moving average
+    ↓
+Linear regression
+    ↓
+5-minute forecast
+    ↓
+Trend / alert result
+```
+
+## 🛠️ Tech Stack
+
+- Python 3.12
+- FastAPI
+- Uvicorn
+- psutil
+- NumPy
+- WebSocket
+- HTML / CSS / JavaScript
 
 ## 🚀 Quick Start
 
 ```bash
+git clone https://github.com/aidos-sec/system-monitor-ai.git
+cd system-monitor-ai
+
+python -m venv .venv
+```
+
+Activate the virtual environment:
+
+**Linux/macOS**
+```bash
+source .venv/bin/activate
+```
+
+**Windows PowerShell**
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Install dependencies and start the app:
+
+```bash
 pip install -r requirements.txt
 cd backend
-python main.py          # on Windows use: py main.py
+python main.py
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
+## 📁 Project Structure
+
+```text
+system-monitor-ai/
+├── backend/
+│   ├── main.py
+│   ├── metrics.py
+│   ├── predictor.py
+│   └── static/
+│       └── index.html
+├── requirements.txt
+├── demo.gif
+├── screenshot-idle.png
+├── screenshot-alert.png
+├── .gitignore
+└── README.md
+```
+
+## 🤖 How the Prediction Works
+
+The predictor keeps a rolling window of recent CPU measurements, smooths the series with a moving average, and fits a linear trend. That trend is projected five minutes forward.
+
+An alert is raised only when the trend is rising and the projected CPU value reaches the configured threshold.
+
+This approach is intentionally simple and explainable. It is useful for learning monitoring and forecasting concepts, but it should not be treated as a calibrated anomaly-detection or production capacity-planning model.
+
+## ⚠️ Limitations
+
+- The forecasting model assumes a short-term linear trend.
+- It does not model seasonality, workload type, or long-term historical patterns.
+- CPU predictions can be inaccurate when load changes suddenly.
+- Metrics are kept in memory and are not persisted to a database.
+- There is no authentication or role-based access control.
+- The application is intended for local educational use.
+
+## 🔭 Possible Improvements
+
+- Persist metrics for historical analysis
+- Add configurable alert thresholds
+- Add automated tests
+- Compare multiple forecasting methods
+- Add containerization
+- Export alerts to another monitoring or security platform
+
+## 📄 License
+
+MIT License. See [LICENSE](LICENSE).
